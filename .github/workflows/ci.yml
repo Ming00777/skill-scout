@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Python 语法检查
+        run: python -m compileall -q scripts/
+
+      - name: Shell 脚本语法检查
+        run: bash -n install-to-other-agents.sh
+
+      - name: 零依赖校验
+        run: |
+          if grep -rE '^[[:space:]]*(import|from)[[:space:]]+(requests|httpx|click|rich|typer|pydantic|numpy|pandas)' scripts/; then
+            echo "::error::scripts/ 引入了第三方依赖。本项目必须零依赖，只用标准库。"
+            exit 1
+          fi
+          echo "OK: 未发现第三方依赖"
+
+      - name: 文档链接完整性
+        run: |
+          for f in SKILL.md README.md CONTRIBUTING.md; do
+            test -s "$f" || { echo "::error::$f 缺失或为空"; exit 1; }
+          done
+          echo "OK: 核心文档齐全"
