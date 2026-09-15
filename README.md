@@ -62,6 +62,8 @@ git clone https://github.com/Ming00777/skill-scout.git ~/.trae-cn/skills/skill-s
 
 已经装过一份、想分发到本机其他 Agent：在仓库目录跑 `bash install-to-other-agents.sh`。
 
+该脚本**不会静默删除任何目录**。目标已存在时默认跳过；只有显式加 `--force` 才会覆盖，且覆盖前自动备份原目录。
+
 ## 前置要求
 
 - Python 3（脚本零依赖，只用标准库）
@@ -96,6 +98,24 @@ skill-scout/
     search_github.py               GitHub 检索（gh 优先，匿名兜底）
   install-to-other-agents.sh       分发到本机其他 Agent
 ```
+
+## 隐私与网络请求
+
+本 Skill 会联网，但**只发检索关键词，不发你的项目内容**。完整清单：
+
+| 位置 | 目标 | 发送内容 | 何时触发 |
+|---|---|---|---|
+| `scripts/search_github.py` | `api.github.com`（或经已认证的 `gh`） | 关键词、仓库名 | 每次检索，必需 |
+| `scripts/detect_agent.py` | 无网络请求 | — | 纯本地探测 |
+| SKILL.md 兜底源：SkillHub | `lightmake.site`（第三方） | 关键词本身 | 仅 GitHub 结果不足时 |
+| SKILL.md 兜底源：`npx` 系列 | npm registry（第三方） | 包名，并执行其中代码 | 仅前两者都不足，**且需你明确同意** |
+
+**永不外发**：文件名、`git log` 提交信息、代码片段、绝对路径、环境变量内容。这些只在本地参与关键词构造。
+
+两条硬规则：
+
+- 任何会下载并执行第三方包的命令（`npx <pkg>`、`curl | bash`），执行前必须告知并取得同意，不许静默执行。
+- 本仓库的 `scripts/` 下只有两个 Python 文件，无 shell 管道执行、无凭据读取、无混淆代码。
 
 ## 四条设计原则
 

@@ -15,6 +15,8 @@ description_en: "Context-aware skill discovery and recommendation"
 2. **推荐完必须停下。** 输出卡片后等用户选择，不自动安装、不自动 clone、不自动改文件。
 3. **必须说明"能解决到什么程度"。** 每条推荐都要写清楚预期效果和局限，禁止吹牛。
 4. **必须先过安全审计。** 凡是带 `scripts/` 的、或内容里出现网络请求/文件读写的，安装前一律扫描并报告风险。
+5. **处境数据不出本机。** 从 `git log`、文件内容、目录结构推断出的处境，**只在本地用来拼关键词**。发往任何外部接口的，只有你自己拼出来的那两三个关键词，绝不包含文件名、提交信息、代码片段、绝对路径。
+6. **执行远程代码前必须问。** 任何会下载并执行第三方包的命令（`npx <pkg>`、`pip install`、`curl | bash`），执行前必须先告诉用户"这一步会下载并执行第三方包"，得到同意再跑。不许静默执行。
 
 ## 工作流程
 
@@ -61,15 +63,20 @@ python3 scripts/search_github.py "ui design frontend" --limit 15 --fetch-content
 
 主源是 GitHub 代码搜索（直接命中 `filename:SKILL.md`，精准度远高于搜仓库名）。脚本优先用已登录的 `gh`，没有则退回匿名 API。
 
-GitHub 结果不足或质量差时，按顺序走兜底源：
+官方精选源（质量最高，优先看）：`openai/skills` 仓库的 `skills/.curated` 目录，直接用已认证的 `gh` 拉取，不外发数据。
+
+GitHub 结果不足或质量差时，**才**走下面的兜底源。它们全都是第三方，用之前先跟用户说清楚：
 
 ```bash
-curl -s "https://lightmake.site/api/v1/search?q=<关键词>&limit=10"   # SkillHub
-npx skills find <关键词>                                              # Vercel Skills
-npx clawhub search <关键词>                                            # ClawHub
+# SkillHub — 第三方服务（lightmake.site）。只发送关键词本身，不发送任何项目内容。
+curl -s "https://lightmake.site/api/v1/search?q=<关键词>&limit=10"
+
+# 下面两条会从 npm 下载并执行第三方包
+npx skills find <关键词>        # Vercel Skills
+npx clawhub search <关键词>     # ClawHub
 ```
 
-官方精选源（质量最高，优先看）：`openai/skills` 仓库的 `skills/.curated` 目录。
+**跑 `npx` 之前必须先问用户**："这一步会从 npm 下载并执行第三方包，是否继续？"得到明确同意才执行。用户拒绝就用 GitHub 源的结果，或直接说明没找到。
 
 详细检索与评分策略见 `references/search-playbook.md`。
 
@@ -115,6 +122,19 @@ npx clawhub search <关键词>                                            # Claw
 2. 目标目录已存在同名 Skill 时，明确告知并让用户选：跳过 / 覆盖 / 改名
 3. 装完验证：`ls <skill_dir>/<name>/SKILL.md`
 4. 提醒用户重启会话才能加载新 Skill
+
+## 本 Skill 的对外请求清单
+
+给自己也做一份审计，让用户和审计工具一眼看清哪里会联网：
+
+| 位置 | 目标 | 发送内容 | 何时触发 |
+|---|---|---|---|
+| `scripts/search_github.py` | `api.github.com`（或经已认证的 `gh`） | 关键词、仓库名 | 每次检索，必需 |
+| `scripts/detect_agent.py` | 无网络请求 | — | 纯本地探测 |
+| 第三步兜底源：SkillHub | `lightmake.site`（**第三方**） | 关键词本身 | 仅 GitHub 结果不足时 |
+| 第三步兜底源：`npx` 系列 | npm registry（**第三方**） | 包名，并执行其中代码 | 仅前两者都不足，**且需用户明确同意** |
+
+**永不外发**：文件名、`git log` 提交信息、代码片段、绝对路径、环境变量内容。这些只在本地参与关键词构造。
 
 ## 参考文件
 
