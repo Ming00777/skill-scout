@@ -28,7 +28,21 @@ skill-scout 先读懂你当前用的是哪个 Agent、卡在什么问题上，�
 
 ## 安装
 
-选一个对应你 Agent 的命令：
+**方式一：Skills CLI**
+
+```bash
+npx skills add Ming00777/skill-scout
+```
+
+**方式二：让 Agent 安装**
+
+把下面这句话直接丢给你的 Agent：
+
+```
+安装这个 Skill: https://github.com/Ming00777/skill-scout
+```
+
+**方式三：手动 clone 到指定 Agent 目录**
 
 ```bash
 # WorkBuddy
@@ -44,9 +58,9 @@ git clone https://github.com/Ming00777/skill-scout.git ~/.claude/skills/skill-sc
 git clone https://github.com/Ming00777/skill-scout.git ~/.trae-cn/skills/skill-scout
 ```
 
-已装过的话，在仓库目录里跑 `bash install-to-other-agents.sh` 可以一次性分发到本机所有 Agent。
-
 装完**重启 Agent 会话**才会加载。
+
+已经装过一份、想分发到本机其他 Agent：在仓库目录跑 `bash install-to-other-agents.sh`。
 
 ## 前置要求
 
