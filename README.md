@@ -1,6 +1,18 @@
 # skill-scout
 
-上下文感知的 Skill 推荐器。
+你在 Codex 里装过的好用 Skill，换到 WorkBuddy 就用不上了。
+
+skill-scout 的第一步不是去网上搜，而是**先把你本机所有 Agent 已装的 Skill 扫一遍**——你要的东西大概率机器上已经有了。扫完没有，才去 GitHub 找，最后给你一条能直接粘贴的安装命令。
+
+<!-- TODO: 在这里放一张 15-30 秒的终端录屏 GIF -->
+
+**一句话**：别急着搜，先看看你机器上已经有了什么。
+
+## 30 秒装上
+
+```bash
+npx skills add Ming00777/skill-scout
+```
 
 ## 它解决什么
 
