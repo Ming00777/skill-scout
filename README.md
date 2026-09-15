@@ -82,7 +82,9 @@ gh auth login
 
 > 我在做前端界面，一直觉得很丑，帮我找个适合现在情况的 Skill
 
-它会自己完成：探测 Agent → 翻译意图 → 检索 → 评分 → 安全审计 → 出推荐卡，**然后停下来等你选**。
+它会自己完成：扫本地已装（避免推荐重复）→ 探测 Agent → 分析技术栈 → 翻译意图 → 检索 → 评分 → 安全审计 → 出推荐卡，**然后停下来等你选**。
+
+找不到现成的，会建议你自建一个，并给出建法要点。
 
 ## 目录结构
 
@@ -96,6 +98,8 @@ skill-scout/
   scripts/
     detect_agent.py                探测当前 Agent（零依赖）
     search_github.py               GitHub 检索（gh 优先，匿名兜底）
+    list_local_skills.py           扫描本机已装 Skill，避免推荐重复
+    analyze_codebase.py            确定性提取项目技术栈（纯本地，无网络）
   install-to-other-agents.sh       分发到本机其他 Agent
 ```
 

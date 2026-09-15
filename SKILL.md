@@ -24,22 +24,37 @@ description_en: "Context-aware skill discovery and recommendation"
 
 ### 第一步：读处境
 
-先跑探测脚本，拿到当前 Agent 身份：
+按顺序做完这三件事，别跳步。
+
+**1.1 先扫本地已装的 Skill**（最容易被漏掉，也最容易出丑）
+
+```bash
+python3 scripts/list_local_skills.py --match "<痛点关键词>"
+```
+
+命中就**直接告诉用户"你已经装了 X，在 `<路径>`"**，别再去网上搜一遍推荐个重复的。
+
+**1.2 探测当前 Agent 身份**
 
 ```bash
 python3 scripts/detect_agent.py
 ```
 
-脚本输出 JSON：`agent`（识别到的客户端）、`skill_dir`（该装到哪）、`confidence`、`candidates`（其他可能）。
+输出 `agent`（识别到的客户端）、`skill_dir`（该装到哪）、`confidence`、`installed`（本机装了哪些）。
 
-脚本识别不出来时（豆包、Octo 这类云端客户端本机不留痕），**直接问用户一句**，不要猜。问完把答案记进 `references/agent-registry.md` 的自定义区，下次就不用再问。
+识别不出来时（豆包、Octo 这类云端客户端本机不留痕），**直接问用户一句**，不要猜。问完把答案记进 `references/agent-registry.md` 的自定义区，下次就不用再问。
 
-同时读取项目处境作为推断依据：
-- 当前工作目录的项目类型（看 `package.json` / `requirements.txt` / `Cargo.toml` 等）
-- 最近改动的文件（`git log --oneline -10`、`git status --short`）
-- 用户刚说的话里的情绪词和痛点词（"好丑"、"老是报错"、"太慢"、"每次都要"）
+**1.3 分析项目技术栈**（用脚本确定性提取，别靠自由发挥）
 
-**边界要诚实**：读不到用户在别的 Agent 里的历史会话。处境推断只作为补充，**用户显式说出来的痛点永远优先于推断**。推断与用户表述冲突时，以用户为准。
+```bash
+python3 scripts/analyze_codebase.py
+```
+
+用它的 `summary` 和 `frameworks` 字段构造检索关键词。**只发这两项，别把文件名、路径、git 提交信息发出去。**
+
+补充参考（不必每次都跑）：最近改动 `git log --oneline -10`、用户话里的情绪词（"好丑"、"老是报错"、"太慢"、"每次都要"）。
+
+**边界要诚实**：读不到用户在别的 Agent 里的历史会话。处境推断只作为补充，**用户显式说出来的痛点永远优先于推断**。冲突时以用户为准。
 
 ### 第二步：翻译意图
 
@@ -105,12 +120,19 @@ npx clawhub search <关键词>     # ClawHub
 
 排序第一的那个，明确说一句"你的情况选第 1 个，因为……"。
 
-**搜不到就直说**：
+**搜不到就直说，然后给两条路**：
 
 ```
 在 GitHub、SkillHub、ClawHub 都没找到匹配的。
-我可以现在直接帮你做这件事，或者帮你写一个自定义 Skill——你说哪种。
+
+两条路：
+1. 我直接帮你把这件事做了（适合一次性的任务）
+2. 我帮你写个自定义 Skill（适合以后还会反复遇到的）
+
+你说哪种？
 ```
+
+用户选 2，就按 `references/authoring-checklist.md` 建。核心只有一条：**description 里必须写触发条件**，否则以后永远不会被自动触发，等于白写。
 
 绝对不要用记忆里的仓库名编一个出来。
 
@@ -141,3 +163,4 @@ npx clawhub search <关键词>     # ClawHub
 - `references/agent-registry.md` — 各 Agent 检测规则与 Skill 目录映射
 - `references/search-playbook.md` — 检索式写法、评分权重、质量红线
 - `references/security-checklist.md` — 安装前安全审计清单
+- `references/authoring-checklist.md` — 找不到现成 Skill 时，自建的实操要点
