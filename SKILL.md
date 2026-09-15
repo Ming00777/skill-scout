@@ -26,13 +26,24 @@ description_en: "Context-aware skill discovery and recommendation"
 
 按顺序做完这三件事，别跳步。
 
-**1.1 先扫本地已装的 Skill**（最容易被漏掉，也最容易出丑）
+**1.1 先在本机找现成的**（最容易出彩，也最容易漏）
 
 ```bash
-python3 scripts/list_local_skills.py --match "<痛点关键词>"
+python3 scripts/sync_local_skills.py --match "<痛点关键词>"
 ```
 
-命中就**直接告诉用户"你已经装了 X，在 `<路径>`"**，别再去网上搜一遍推荐个重复的。
+它扫的是**全部** Agent 的目录，不只当前这个，返回三类结果：
+
+| 结果 | 含义 | 动作 |
+|---|---|---|
+| `owned` | 当前 Agent 已经有 | 直接告诉用户"你已经装了 X，在 `<路径>`"，结束 |
+| `gaps` | **别的 Agent 有、当前没有** | **优先推荐搬过来**，把 `suggested_command` 给用户 |
+| `drifts` | 同名 Skill 在多个 Agent 里内容不一致 | 提示版本漂移，让用户决定以哪份为准 |
+
+**先内后外**：本机已有的至少装得上、跑得起来，网上搜来的没验证过。只要 `gaps` 非空，
+就先给搬运方案，用户不满意再去网上搜。
+
+命令只给用户，**不要自动执行**。
 
 **1.2 探测当前 Agent 身份**
 

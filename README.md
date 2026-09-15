@@ -4,12 +4,18 @@
 
 ## 它解决什么
 
-你很难找到适合自己的 Skill——不是因为网上没有，而是两个具体障碍：
+你很难找到适合自己的 Skill——不是因为网上没有，而是三个具体障碍：
 
 1. **不知道该搜什么词**。"UI 好丑"拿去搜 GitHub 搜不出东西。
 2. **不知道搜到的东西在自己的 Agent 上能不能跑**。Codex、Claude Code、TRAE 的 Skill 目录各不相同。
+3. **你在 A 里装的能力，在 B 里用不上**。多数人装了四五个 Agent，各自的 Skill 互不相通——
+   明明 Codex 里就有个官方 `frontend-design`，在 WorkBuddy 里做界面却够不着。
 
-skill-scout 先读懂你当前用的是哪个 Agent、卡在什么问题上，再去 GitHub 和公开注册表检索，评分后给出 Top 3 推荐，并告诉你**能解决到什么程度**、**该装到哪个目录**。
+skill-scout 的处理顺序是**先内后外**：
+
+1. 先扫本机**全部** Agent 的目录，找到现成的就直接给搬运命令（本机已有的至少装得上、跑得起来）
+2. 本机没有，才去 GitHub 和公开注册表检索
+3. 评分后给出 Top 3，并告诉你**能解决到什么程度**、**该装到哪个目录**
 
 ## 支持的 Agent
 
@@ -82,7 +88,7 @@ gh auth login
 
 > 我在做前端界面，一直觉得很丑，帮我找个适合现在情况的 Skill
 
-它会自己完成：扫本地已装（避免推荐重复）→ 探测 Agent → 分析技术栈 → 翻译意图 → 检索 → 评分 → 安全审计 → 出推荐卡，**然后停下来等你选**。
+它会自己完成：扫本机全部 Agent 找现成的 → 探测 Agent → 分析技术栈 → 翻译意图 → 检索 → 评分 → 安全审计 → 出推荐卡，**然后停下来等你选**。
 
 找不到现成的，会建议你自建一个，并给出建法要点。
 
@@ -98,7 +104,8 @@ skill-scout/
   scripts/
     detect_agent.py                探测当前 Agent（零依赖）
     search_github.py               GitHub 检索（gh 优先，匿名兜底）
-    list_local_skills.py           扫描本机已装 Skill，避免推荐重复
+    list_local_skills.py           扫描本机已装 Skill
+    sync_local_skills.py           跨 Agent 能力调度：找本机现成的 + 版本漂移检测
     analyze_codebase.py            确定性提取项目技术栈（纯本地，无网络）
   install-to-other-agents.sh       分发到本机其他 Agent
 ```
